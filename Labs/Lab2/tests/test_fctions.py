@@ -1,5 +1,6 @@
 import pytest
-from src.fctions import gradient2D, tv
+import random as rd
+from src.fctions import gradient2D, tv,gradient2D_adjoint
 import numpy as np
 
 
@@ -24,3 +25,20 @@ tv_X1 = (1.+9.)**(1/2) + (1.+9.)**(1/2) + (0.+9.)**(1/2) + (1.+9.)**(1/2) +(1.+4
 tv_X2 = (1.+4.)**(1/2) +(4.)**(1/2) +(1.)**(1/2) 
 def test_tv():
     assert(tv(X1) == tv_X1 and tv(X2)== tv_X2)
+
+
+def test_gradient2D_adjoint():
+    rd.seed(3)
+    m = rd.randint(3,10)
+    n = rd.randint(3,10)
+    X = np.array([[rd.randint(0,9) for k in range(m)] for i in range(n)])
+    Y = np.array([[[rd.randint(0,9) for k in range(m)] for i in range(n)] ,[[rd.randint(0,9) for k in range(m)] for i in range(n)]])
+
+    DX = gradient2D(X)
+    DX_scal_Y = np.trace(DX[0].T@Y[0]) + np.trace(DX[1].T@Y[1])
+
+    DstarY = gradient2D_adjoint(Y)
+    X_scal_DstarY = np.trace(X.T@DstarY)
+
+    print(DX_scal_Y,X_scal_DstarY)
+    assert (gradient2D_adjoint(Y).shape == X.shape  and (DX_scal_Y == X_scal_DstarY) )
